@@ -209,11 +209,8 @@ void SetFlags_ZN(CPU* cpu)
 
 void PushWordToStack(u32* cycles, CPU* cpu, MEM* mem, WORD value)
 {
-	write8(cycles, value >> 8, cpu->SP, mem);
-	cpu->SP--;
-
-	write8(cycles, value & 0x00FF, cpu->SP, mem);
-	cpu->SP--;
+	write8(cycles, value >> 8, (cpu->SP)--, mem);
+	write8(cycles, value & 0x00FF, (cpu->SP)--, mem);
 }
 
 WORD PullWordFromStack(u32* cycles, CPU* cpu, MEM* mem)
@@ -243,6 +240,26 @@ WORD PullWordFromStack(u32* cycles, CPU* cpu, MEM* mem)
 #define INS_LDY_AB0  0xAC
 #define INS_LDY_ABX  0xBC
 
+#define INS_ADC_IMM  0x69
+#define INS_ADC_ZP0  0x65
+#define INS_ADC_ZPX  0x75
+#define INS_ADC_AB0  0x6D
+#define INS_ADC_ABX  0x7D
+#define INS_ADC_ABY  0x79
+
+#define INS_AND_IMM  0x29
+#define INS_AND_ZP0  0x25
+#define INS_AND_ZPX  0x35
+#define INS_AND_AB0  0x2D
+#define INS_AND_ABX  0x3D
+#define INS_AND_ABY  0x39
+
+#define INS_ASL_ACC  0x0A
+#define INS_ASL_ZP0  0x06
+#define INS_ASL_ZPX  0x16
+#define INS_ASL_AB0  0x0E
+#define INS_ASL_ABX  0x1E
+
 #define INS_JMP_ABS  0x4C
 #define INS_JMP_IND  0x6C
 #define INS_JSR      0x20
@@ -259,114 +276,284 @@ u32 exec(CPU* cpu, MEM* mem)
 		{
 
 		// LDA
-		case INS_LDA_IMM:
 		{
-			BYTE V = IMM(&cycles, cpu, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-		case INS_LDA_ZP0:
-		{
-			BYTE V = ZP0(&cycles, cpu, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-		case INS_LDA_ZPX:
-		{
-			BYTE V = ZPX(&cycles, cpu, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-		case INS_LDA_AB0:
-		{
-			WORD ADDRESS = AB0(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-		case INS_LDA_ABX:
-		{
-			WORD ADDRESS = ABX(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-		case INS_LDA_ABY:
-		{
-			WORD ADDRESS = ABY(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LA, cpu, V);
-		} break;
-
+			case INS_LDA_IMM:
+			{
+				BYTE V = IMM(&cycles, cpu, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+			case INS_LDA_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+			case INS_LDA_ZPX:
+			{
+				BYTE V = ZPX(&cycles, cpu, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+			case INS_LDA_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+			case INS_LDA_ABX:
+			{
+				WORD ADDRESS = ABX(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+			case INS_LDA_ABY:
+			{
+				WORD ADDRESS = ABY(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LA, cpu, V);
+			} break;
+		}
 		// LDX
-		case INS_LDX_IMM:
 		{
-			BYTE V = IMM(&cycles, cpu, mem);
-			LoadRegister(LX, cpu, V);
-		} break;
-		case INS_LDX_ZP0:
-		{
-			BYTE V = ZP0(&cycles, cpu, mem);
-			LoadRegister(LX, cpu, V);
-		} break;
-		case INS_LDX_ZPY:
-		{
-			BYTE V = ZPY(&cycles, cpu, mem);
-			LoadRegister(LX, cpu, V);
-		} break;
-		case INS_LDX_AB0:
-		{
-			WORD ADDRESS = AB0(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LX, cpu, V);
-		} break;
-		case INS_LDX_ABY:
-		{
-			WORD ADDRESS = ABY(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LX, cpu, V);
-		} break;
-
+			case INS_LDX_IMM:
+			{
+				BYTE V = IMM(&cycles, cpu, mem);
+				LoadRegister(LX, cpu, V);
+			} break;
+			case INS_LDX_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				LoadRegister(LX, cpu, V);
+			} break;
+			case INS_LDX_ZPY:
+			{
+				BYTE V = ZPY(&cycles, cpu, mem);
+				LoadRegister(LX, cpu, V);
+			} break;
+			case INS_LDX_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LX, cpu, V);
+			} break;
+			case INS_LDX_ABY:
+			{
+				WORD ADDRESS = ABY(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LX, cpu, V);
+			} break;
+		}
 		// LDY
-		case INS_LDY_IMM:
 		{
-			BYTE V = IMM(&cycles, cpu, mem);
-			LoadRegister(LY, cpu, V);
-		} break;
-		case INS_LDY_ZP0:
+			case INS_LDY_IMM:
+			{
+				BYTE V = IMM(&cycles, cpu, mem);
+				LoadRegister(LY, cpu, V);
+			} break;
+			case INS_LDY_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				LoadRegister(LY, cpu, V);
+			} break;
+			case INS_LDY_ZPX:
+			{
+				BYTE V = ZPX(&cycles, cpu, mem);
+				LoadRegister(LY, cpu, V);
+			} break;
+			case INS_LDY_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LY, cpu, V);
+			} break;
+			case INS_LDY_ABX:
+			{
+				WORD ADDRESS = ABX(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				LoadRegister(LY, cpu, V);
+			} break;
+		}
+		// ADC
 		{
-			BYTE V = ZP0(&cycles, cpu, mem);
-			LoadRegister(LY, cpu, V);
-		} break;
-		case INS_LDY_ZPX:
+			case INS_ADC_IMM:
+			{
+				BYTE V = IMM(&cycles, cpu, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+				cycles++;
+			} break;
+			case INS_ADC_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+				cycles++;
+			} break;
+			case INS_ADC_ZPX:
+			{
+				BYTE V = ZPX(&cycles, cpu, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+				cycles++;
+			} break;
+			case INS_ADC_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+				cycles++;
+			} break;
+			case INS_ADC_ABX:
+			{
+				WORD ADDRESS = ABX(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_ADC_ABY:
+			{
+				WORD ADDRESS = ABY(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				WORD T = cpu->A + (V + cpu->C);
+				signed char R = (signed char)V + (signed char)cpu->C + (signed char)cpu->A;
+				cpu->V = ((T & 0b010000000 && R >= 0) || (!(T & 0b010000000) && R < 0)) > 0;
+				cpu->A += (V + cpu->C);
+				cpu->C = (T & 0b100000000) > 0;
+				SetFlags_ZN(cpu);
+			} break;
+		}
+		// AND
 		{
-			BYTE V = ZPX(&cycles, cpu, mem);
-			LoadRegister(LY, cpu, V);
-		} break;
-		case INS_LDY_AB0:
+			case INS_AND_IMM:
+			{
+				BYTE V = IMM(&cycles, cpu, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_AND_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_AND_ZPX:
+			{
+				BYTE V = ZPX(&cycles, cpu, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_AND_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_AND_ABX:
+			{
+				WORD ADDRESS = ABX(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_AND_ABY:
+			{
+				WORD ADDRESS = ABY(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				cpu->A &= V;
+				SetFlags_ZN(cpu);
+			} break;
+		}
+		// ASL
 		{
-			WORD ADDRESS = AB0(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LY, cpu, V);
-		} break;
-		case INS_LDY_ABX:
+			case INS_ASL_ACC:
+			{
+				cpu->C = (cpu->A & 0b10000000) > 0;
+				cpu->A <<= 1;
+				SetFlags_ZN(cpu);
+			} break;
+			case INS_ASL_ZP0:
+			{
+				BYTE V = ZP0(&cycles, cpu, mem);
+				cpu->C = (V & 0b10000000) > 0;
+				V <<= 1;
+				SetFlags_ZN(cpu);
+				cpu->N = (V & 0b10000000) > 0; // Overwrite with memory location bit 7 value
+				write8(&cycles, V, *(mem->Data + cpu->PC - 1), mem);
+			} break;
+			case INS_ASL_ZPX:
+			{
+				BYTE V = ZPX(&cycles, cpu, mem);
+				cpu->C = (V & 0b10000000) > 0;
+				V <<= 1;
+				SetFlags_ZN(cpu);
+				cpu->N = (V & 0b10000000) > 0; // Overwrite with memory location bit 7 value
+				write8(&cycles, V, *(mem->Data + cpu->PC - 1 + cpu->X), mem); cycles += 2;
+			} break;
+			case INS_ASL_AB0:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				cpu->C = (V & 0b10000000) > 0;
+				V <<= 1;
+				SetFlags_ZN(cpu);
+				cpu->N = (V & 0b10000000) > 0; // Overwrite with memory location bit 7 value
+				write8(&cycles, V, ADDRESS, mem);
+			} break;
+			case INS_ASL_ABX:
+			{
+				WORD ADDRESS = ABX(&cycles, cpu, mem);
+				BYTE V = read8(&cycles, ADDRESS, mem);
+				cpu->C = (V & 0b10000000) > 0;
+				V <<= 1;
+				SetFlags_ZN(cpu);
+				cpu->N = (V & 0b10000000) > 0; // Overwrite with memory location bit 7 value
+				write8(&cycles, V, ADDRESS, mem);
+			} break;
+		}
+		// JSR | RTS
 		{
-			WORD ADDRESS = ABX(&cycles, cpu, mem);
-			BYTE V = read8(&cycles, ADDRESS, mem);
-			LoadRegister(LY, cpu, V);
-		} break;
+			case INS_JSR:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				PushWordToStack(&cycles, cpu, mem, (cpu->PC - 1));
+				WritePC(&cycles, cpu, ADDRESS);
+			} break;
+			case INS_RTS:
+			{
+				WORD npc = PullWordFromStack(&cycles, cpu, mem);
+				WritePC(&cycles, cpu, ++npc);
+			} break;
+		}
+		// JMP
+		{
+			case INS_JMP_ABS:
+			{
+				WORD ADDRESS = AB0(&cycles, cpu, mem);
+				WritePC(&cycles, cpu, ADDRESS);
+			} break;
+		}
 
-		case INS_JSR:
-		{
-			WORD ADDRESS = AB0(&cycles, cpu, mem);
-			PushWordToStack(&cycles, cpu, mem, (cpu->PC - 1));
-			WritePC(&cycles, cpu, ADDRESS);
-		} break;
-		case INS_RTS:
-		{
-			WORD npc = PullWordFromStack(&cycles, cpu, mem);
-			WritePC(&cycles, cpu, ++npc);
-		} break;
-		case INS_JMP_ABS:
-		{
-			WORD ADDRESS = AB0(&cycles, cpu, mem);
-			WritePC(&cycles, cpu, ADDRESS);
-		} break;
+
 		default:
 			printf("Instruction not recognized = 0x%02x [Maybe program execution ended?]\n", I);
 			return cycles;
@@ -449,12 +636,17 @@ int main(int argc, char* argv[])
 	if (argc > 1)
 	{
 		load_program(argv[1], &mem, &cpu);
-
-		exec(&cpu, &mem);
-
-		printf("Acc val: 0x%08x\n", cpu.A);
-		printf("X val: 0x%08x\n", cpu.X);
 	}
+	else
+	{
+		printf("No input file supplied. Running simple sample...\n\n");
+		load_program("samples/simple.prg", &mem, &cpu);
+	}
+
+	exec(&cpu, &mem);
+
+	printf("Acc val: 0x%08x\n", cpu.A);
+	printf("X val: 0x%08x\n", cpu.X);
 
 	deleteMemory(&mem);
 	return 0;
